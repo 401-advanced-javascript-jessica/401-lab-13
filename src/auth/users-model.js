@@ -4,6 +4,12 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+const SINGLE_USE_TOKENS = !!process.env.SINGLE_USE_TOKENS;
+const TOKEN_EXPIRE = process.env.TOKEN_LIFETIME || '5m';
+const SECRET = process.env.SECRET || 'testSecret';
+
+const usedTokens = new Set();
+
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
   password: {type:String, required:true},
@@ -46,19 +52,49 @@ users.statics.authenticateBasic = function(auth) {
     .catch(error => {throw error;});
 };
 
+users.statics.authenticateToken = function(token){
+
+  if (usedTokens.has(token)) {
+    return Promise.reject('Invalid Token');
+  }
+
+  try {
+    let parsedToken = jwt.verify(token, SECRET);
+    if ( SINGLE_USE_TOKENS && parsedToken.type !== 'key'){
+      usedTokens.add(token);
+    }
+    let query = {_id: parsedToken.id};
+    return this.findOne(query);
+  } catch (error) { throw new Error('Invalid Token'); }
+
+  // const decryptedToken = jwt.verify(token, process.env.SECRET || 'TestSecret');
+  // const query = { _id: decryptedToken.id };
+  // return this.findOne(query);
+};
+
 users.methods.comparePassword = function(password) {
   return bcrypt.compare( password, this.password )
     .then( valid => valid ? this : null);
 };
 
-users.methods.generateToken = function() {
+users.methods.generateToken = function(type) {
   
   let token = {
     id: this._id,
     role: this.role,
+    type: type || 'user',
   };
+
+  let signOptions = {};
+  if(type !== 'key' && !TOKEN_EXPIRE){
+    signOptions = { expiresIn: TOKEN_EXPIRE};
+  }
   
-  return jwt.sign(token, process.env.SECRET);
+  return jwt.sign(token, SECRET, signOptions);
+};
+
+users.methods.generateKey = function() {
+  return this.generateToken('key');
 };
 
 module.exports = mongoose.model('users', users);
