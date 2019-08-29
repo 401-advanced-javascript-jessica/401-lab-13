@@ -8,7 +8,7 @@ const SINGLE_USE_TOKENS = !!process.env.SINGLE_USE_TOKENS;
 const TOKEN_EXPIRE = process.env.TOKEN_LIFETIME || '5m';
 const SECRET = process.env.SECRET || 'testSecret';
 
-const usedTokens = [];
+const usedTokens = new Set();
 
 const users = new mongoose.Schema({
   username: {type:String, required:true, unique:true},
@@ -54,14 +54,14 @@ users.statics.authenticateBasic = function(auth) {
 
 users.statics.authenticateToken = function(token){
 
-  if (usedTokens.contains(token)) {
+  if (usedTokens.has(token)) {
     return Promise.reject('Invalid Token');
   }
 
   try {
     let parsedToken = jwt.verify(token, SECRET);
-    if ( SINGLE_USE_TOKENS ){
-      usedTokens.push(token);
+    if ( SINGLE_USE_TOKENS && parsedToken.type !== 'key'){
+      usedTokens.add(token);
     }
     let query = {_id: parsedToken.id};
     return this.findOne(query);
@@ -85,12 +85,16 @@ users.methods.generateToken = function(type) {
     type: type || 'user',
   };
 
-  let options = {};
-  if(!TOKEN_EXPIRE){
-    options = { expiresIn: TOKEN_EXPIRE};
+  let signOptions = {};
+  if(type !== 'key' && !TOKEN_EXPIRE){
+    signOptions = { expiresIn: TOKEN_EXPIRE};
   }
   
-  return jwt.sign(token, SECRET, options);
+  return jwt.sign(token, SECRET, signOptions);
+};
+
+users.methods.generateKey = function() {
+  return this.generateToken('key');
 };
 
 module.exports = mongoose.model('users', users);
