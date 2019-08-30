@@ -68,7 +68,8 @@ describe('Auth Middleware', () => {
           expect(next).toHaveBeenCalledWith();
         });
 
-    }); // it()
+    });
+
     
   });
 

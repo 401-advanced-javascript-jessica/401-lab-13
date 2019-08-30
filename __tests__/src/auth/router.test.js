@@ -47,6 +47,33 @@ describe('Auth Router', () => {
           });
       });
 
+      it('can signin with bearer', () => {
+        return mockRequest.post('/signin')
+          .auth(users[userType].username, users[userType].password)
+          .then(results => {
+            return mockRequest.post('/signin')
+              .set('Authorization', 'Bearer ' + results.text)
+              .then(result => {
+                var token = jwt.verify(result.text, process.env.SECRET);
+                expect(token.id).toEqual(id);
+              });
+
+          });
+      });
+      it('can signin with key', () => {
+        return mockRequest.post('/key')
+          .auth(users[userType].username, users[userType].password)
+          .then(results => {
+            return mockRequest.post('/signin')
+              .set('Authorization', 'Bearer ' + results.text)
+              .then(result => {
+                var token = jwt.verify(result.text, process.env.SECRET);
+                expect(token.id).toEqual(id);
+              });
+
+          });
+      });
+
     });
     
   });
