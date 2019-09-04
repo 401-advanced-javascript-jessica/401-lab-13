@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  * Authentication Middleware
  * @module src/auth/middleware
@@ -27,9 +26,10 @@ module.exports = (req, res, next) => {
 
   /**
    *checks the type of the authorization
+   *
    * @param str
    * @returns {Promise<T>}
-   * @private
+   *
    */
   function _authBasic(str) {
     // str: am9objpqb2hubnk=
@@ -47,7 +47,7 @@ module.exports = (req, res, next) => {
    *checks the jwt token
    * @param authString
    * @returns {Promise<void>}
-   * @private
+   *
    */
   function _authBearer(authString){
     return User.authenticateToken(authString)
@@ -58,7 +58,7 @@ module.exports = (req, res, next) => {
   /**
    *if the user exists, creates a token
    * @param user
-   * @private
+   *
    */
   function _authenticate(user) {
     if(user) {
@@ -73,7 +73,7 @@ module.exports = (req, res, next) => {
 
   /**
    *throws an error if the auth is invalid
-   * @private
+   *
    */
   function _authError() {
     next('Invalid User ID/Password');

@@ -32,7 +32,8 @@ users.pre('save', function(next) {
 });
 
 /**
- *
+ * Creates a user from Oauth
+ * @method createFromOauth
  * @param email
  * @returns {Promise<never>|Promise<unknown>}
  */
@@ -56,7 +57,8 @@ users.statics.createFromOauth = function(email) {
 };
 
 /**
- *
+ * Checks to see if the user exists
+ * @method authenticateBasic
  * @param auth
  * @returns {Promise<unknown>}
  */
@@ -68,7 +70,8 @@ users.statics.authenticateBasic = function(auth) {
 };
 
 /**
- *
+ * authenticates a user based on token
+ * @method authenticateToken
  * @param token
  * @returns {Promise<never>|void|Query}
  */
@@ -93,7 +96,8 @@ users.statics.authenticateToken = function(token){
 };
 
 /**
- *
+ * checks the given password against the stored password
+ * @method comparePassword
  * @param password
  * @returns {Promise<unknown>}
  */
@@ -103,7 +107,8 @@ users.methods.comparePassword = function(password) {
 };
 
 /**
- *
+ * generates a new token
+ * @method generateToken
  * @param type
  * @returns {undefined|*}
  */
